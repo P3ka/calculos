@@ -2,613 +2,277 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Cálculos</title>
-  <link rel="icon" href="10109817.png" type="image/ico" />
+  <title>Cálculos de Densidades</title>
+  <link rel="icon" href="10109817.png?v=0.1" type="image/ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom right, #014f6e, #028f74);
-      color: white;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(to bottom right, #014f6e, #028f74);
+        color: white;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
+
     header {
-      background-color: #002b45;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-      position: relative;
-      flex-shrink: 0;
-    }
-    .voltar, .editar {
-      position: absolute;
-      top: 1rem;
-      background-color: #005b7f;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+        height: 55px; background-color: rgba(0, 43, 69, 0.9);
+        backdrop-filter: blur(10px); display: flex; align-items: center;
+        padding: 0 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); box-sizing: border-box;
     }
 
-    .voltar:hover, .editar:hover {
-      background-color: #004a6a;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.7);
-    }
-
-    .voltar:active, .editar:active {
-      box-shadow: 0 2px 4px rgba(0,0,0,0.9);
-    }
-
-    .voltar { left: 1rem; }
-    .editar { right: 1rem; }
+    .header-title { font-size: 1.05rem; font-weight: bold; text-align: center; flex-grow: 1; }
 
     main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 1rem;
-      overflow-y: auto;
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 75px 10px 40px 10px; gap: 20px; box-sizing: border-box;
     }
 
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      justify-content: center;
-      margin-top: 1rem;
+    .quadro-identico {
+        width: 100%; max-width: 95vw; padding: 15px; border-radius: 16px;
+        background-color: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        text-align: center; box-sizing: border-box;
     }
 
-    .formulario {
-      background-color: rgba(255, 255, 255, 0.15);
-      padding: 2rem;
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 1rem;
-      width: 300px;
-      min-height: 280px; /* ajusta para o valor ideal para teu conteúdo */
-      color: black;
+    .select-custom, .custom-input {
+        width: 100%; max-width: 400px; height: 45px; margin: 5px 0; border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.2); background-color: rgba(0, 50, 60, 0.4);
+        color: white; font-size: 0.95rem; text-align: center; outline: none; box-sizing: border-box;
     }
 
-    select, input {
-      padding: 0.6rem;
-      border-radius: 5px;
-      border: none;
-      font-size: 1rem;
+    .resultado-erro { color: #ff7043 !important; } 
+    .alerta-densidade { 
+        color: #ff7043; 
+        font-weight: bold; 
+        font-size: 0.85rem; 
+        margin: 12px 0; 
+        display: none;
+        line-height: 1.4;
+    }
+    .alerta-titulo { font-size: 1.1rem; letter-spacing: 1px; }
+
+    .aviso-texto { font-size: 0.7rem; color: rgba(255, 255, 255, 0.6); margin-top: 5px; font-style: italic; }
+
+    /* --- CORREÇÃO DA TABELA --- */
+    .tabela-container { 
+        max-height: 250px; 
+        overflow: auto; 
+        border-radius: 8px; 
+        background-color: rgba(0,0,0,0.4); 
+        border: 1px solid rgba(255,255,255,0.1);
     }
 
-    .btn {
-      background-color: rgba(255, 255, 255, 0.25);
-      border: none;
-      padding: 0.8rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      color: white;
-      transition: background-color 0.3s;
+    table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.7rem; }
+
+    /* 1. Fixar a linha do topo (Densidades) */
+    thead th { 
+        position: sticky; 
+        top: 0; 
+        z-index: 10; 
+        background-color: #01415a; 
+        color: #4db6ac; 
+        padding: 8px 4px;
+        border-bottom: 2px solid rgba(0,0,0,0.3);
     }
 
-    .btn:hover:enabled {
-      background-color: rgba(255, 255, 255, 0.4);
+    /* 2. Fixar a primeira coluna (Materiais) */
+    tbody td:first-child { 
+        position: sticky; 
+        left: 0; 
+        z-index: 5; 
+        background-color: #012b3d; 
+        color: white; 
+        text-align: left; 
+        min-width: 120px; 
+        padding: 8px 10px;
+        border-right: 2px solid rgba(0,0,0,0.3);
     }
 
-    #resultado, #resultadoDensidade {
-      min-height: 2.2rem; /* altura fixa suficiente para mensagens */
-      margin-top: 1rem;
-      font-size: 1rem;
-      text-align: center;
-      color: white;
+    /* 3. A CÉLULA MESTRA (Material / Ref) - Fixa em ambos os eixos */
+    thead th:first-child { 
+        position: sticky; 
+        top: 0; 
+        left: 0; 
+        z-index: 20; /* Valor mais alto para ficar acima de tudo */
+        background-color: #012b3d; 
+        color: #4db6ac;
+        border-right: 2px solid rgba(0,0,0,0.3);
+        border-bottom: 2px solid rgba(0,0,0,0.3);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      color: black;
-      background: white;
-      border-radius: 6px;
-      overflow: hidden;
-      margin-top: 1rem;
-    }
+    td, th { border: 0.5px solid rgba(255,255,255,0.05); text-align: center; padding: 6px 4px; }
+    .marca-x { color: #4db6ac; font-weight: bold; font-size: 0.9rem; }
 
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-
-    th {
-      background-color: #028f74;
-      color: white;
-    }
-
-    td[contenteditable="true"] {
-      background-color: #f9f9f9;
-    }
-
-    footer {
-      background-color: #002b45;
-      padding: 1rem;
-      text-align: center;
-      color: white;
-      flex-shrink: 0;
-    }
-
-    /* Nova classe para esconder elementos */
-    .hidden {
-      display: none !important;
-    }
-
-    .botoes-edicao {
-      margin: 1rem 0;
-      text-align: center;
-    }
-
-.botoes-edicao button,
-.botoes-edicao label {
-  margin: 0 0.5rem;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  background-color: #005b7f;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  border-radius: 5px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.botoes-edicao button,
-.botoes-edicao label {
-      background-color: #004a6a;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.7);
-    }
-
-.botoes-edicao button,
-.botoes-edicao label {
-      box-shadow: 0 2px 4px rgba(0,0,0,0.9);
-}
-
-.remover-btn {
-  color: white;
-  background-color: red;
-  border: none;
-  padding: 0.3rem 0.5rem;
-  cursor: pointer;
-  border-radius: 5px;
-}
-  /* Caixa de diálogo da password */
-    #passwordPrompt {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #002b45;
-      padding: 1.5rem 2rem;
-      border-radius: 8px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.8);
-      display: none;
-      z-index: 1000;
-      color: white;
-      min-width: 300px;
-    }
-
-    #passwordPrompt label {
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-
-    #passwordPrompt input[type="password"] {
-      width: 100%;
-      padding: 0.5rem;
-      border-radius: 5px;
-      border: none;
-      margin-bottom: 1rem;
-      font-size: 1rem;
-    }
-
-    #passwordPrompt button {
-      padding: 6px 12px;
-      background-color: #007bff;
-      border: none;
-      border-radius: 4px;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
-      margin-right: 8px;
-    }
-    #passwordPrompt button:hover {
-      background-color: #0056b3;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.7);
-    }
-    #passwordPrompt button:active {
-      box-shadow: 0 2px 4px rgba(0,0,0,0.9);
-    }
-
-    #msgErro {
-      color: #ff6666;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-      min-height: 20px;
-    }
-
-    .table-scroll-container {
-  max-height: 400px;    /* Altura máxima do container, ajuste conforme quiser */
-  overflow-y: auto;     /* Scroll vertical automático */
-  border: 0px solid #ccc; /* Opcional: borda para destacar */
-  margin-top: 0px;     /* Espaçamento opcional */
-}
-body.edit-mode {
-  overflow: hidden;
-}
+    footer { position: fixed; bottom: 0; left: 0; width: 100%; background-color: rgba(0, 43, 69, 0.9); text-align: center; padding: 5px 0; font-size: 0.75rem; }
   </style>
 </head>
-<script src=""></script>
 <body>
-  <header>
-    <p hidden <button class="voltar" onclick="window.location.href='../inicio.html'">Voltar</button> </p>
-    Cálculos
-    <p hidden <button class="editar" id="btnEditar">Editar</button> </p>
-  </header>
 
-  <main>
-  <div id="modoNormal">
-    <div class="form-row">
-      <div class="formulario">
-        <p hidden <h2 style="text-align:center; margin-bottom: 1rem; color: white;">Peso Provável</h2>
-        <select id="tipoBalde"></select>
-        <input type="number" id="peso" placeholder="Peso esperado (%)" min="0" step="0.01" />
-        <button class="btn" onclick="calcular()">Calcular</button>
-        <div id="resultado"></div> </p>
-      </div>
+<header>
+    <div class="header-title">Cálculos de Densidades</div>
+</header>
 
-      <div class="formulario">
-        <h2 style="text-align:center; margin-bottom: 1rem; color: white;">Densidade</h2>
-        <select id="tipoBaldeDensidade"></select>
-        <input type="number" id="densidade" placeholder="Densidade (g/ml)" min="0" step="0.01" />
-        <button class="btn" onclick="calcularDensidade()">Calcular</button>
-        <div id="resultadoDensidade"></div>
-      </div>
+<main>
+    <div class="quadro-identico" style="max-width: 450px;">
+        <select id="select-molde" class="select-custom" onchange="verificarSelecao()">
+            <option value="">Selecione o modelo do balde</option>
+        </select>
+
+        <select id="select-material" class="select-custom" onchange="verificarSelecao()">
+            <option value="">Selecione o material</option>
+        </select>
+        
+        <input type="number" id="input-densidade" class="custom-input" 
+               placeholder="Escreva a Densidade (ex: 0.923)" step="0.001" 
+               disabled oninput="executarCalculo()">
+        
+        <div id="res-area" style="margin-top:10px; opacity:0; transition:0.3s;">
+            Peso Estimado: <span id="resultado" style="color:#4db6ac; font-weight:bold; font-size:1.4rem;">---</span> g
+            
+            <div id="msg-alerta" class="alerta-densidade">
+                <span class="alerta-titulo">ATENÇÃO!</span><br>
+                Densidade fora dos valores de referência.
+            </div>
+            
+            <div class="aviso-texto">
+                Os valores de peso obtidos são apenas valores de referência. Poderá haver casos em que não será aplicável.
+            </div>
+        </div>
     </div>
-    <p hidden <div style="margin-top: 1rem; text-align: center;">Nota: Poderá haver diferença entre os dois cálculos devido às contas com casas decimais.</div> </p>
-    <div style="margin-top: 1rem; text-align: center;">Os valores de peso obtidos, são apenas valores de referência. Poderá haver casos em que não será aplicável.</div>
-  </div>
 
-  <div id="modoEdicao" class="hidden">
-
-<div class="botoes-edicao">
-  <button id="addLinhaBtn">Adicionar Linha</button>
-  <button id="exportarBtn">Exportar para .txt</button>
-  <button id="exportarExcelBtn">Exportar para Excel</button>
-  <label for="importarInput" class="btn">Carregar .txt</label>
-  <input type="file" id="importarInput" accept=".txt" style="display: none;" />
-</div>
-
-
-      <div class="table-scroll-container"> <!-- NOVO container para scroll -->
-    <table>
-      <thead><tr><th>Modelo do Balde</th><th>Volume</th></tr></thead>
-      <tbody id="tabelaEdicao">
-        <tr><td contenteditable="true">Balde 15Lt M24</td><td contenteditable="true">657.4</td></tr>
-        <tr><td contenteditable="true">Balde 15Lt M0304</td><td contenteditable="true">697.16</td></tr>
-        <tr><td contenteditable="true">Balde 15Lt M22</td><td contenteditable="true">560.4</td></tr>
-        <tr><td contenteditable="true">Balde 15Lt M2000</td><td contenteditable="true">608.1</td></tr>
-        <tr><td contenteditable="true">Balde 15Lt M2001</td><td contenteditable="true">613.1</td></tr>
-        <tr><td contenteditable="true">Balde 15Lt M0302 Light</td><td contenteditable="true">624.58</td></tr>
-        <tr><td contenteditable="true">Balde 18Lt M03</td><td contenteditable="true">734.2</td></tr>
-        <tr><td contenteditable="true">Balde 20Lt M03</td><td contenteditable="true">797.89</td></tr>
-        <tr><td contenteditable="true">Balde 12,5Lt M03</td><td contenteditable="true">627.9</td></tr>
-        <tr><td contenteditable="true">Balde 12,5Lt M22</td><td contenteditable="true">552.52</td></tr>
-        <tr><td contenteditable="true">Balde 4Lt M0301</td><td contenteditable="true">181.2</td></tr>
-        <tr><td contenteditable="true">Balde 5Lt M0301</td><td contenteditable="true">222.75</td></tr>
-        <tr><td contenteditable="true">Balde 2,5Lt</td><td contenteditable="true">137.76</td></tr>
-        <tr><td contenteditable="true">Balde 1Lt M2000</td><td contenteditable="true">53.68</td></tr>
-        <tr><td contenteditable="true">Balde 0,75Lt M2000</td><td contenteditable="true">47.06</td></tr>
-        <tr><td contenteditable="true">Balde 0,5Lt M2000</td><td contenteditable="true">42.32</td></tr>
-        <tr><td contenteditable="true">Balde 0,5Kg</td><td contenteditable="true">20.6</td></tr>
-    </tbody>
-    </table>
-  </div>
-</div>
-
+    <div class="quadro-identico">
+        <h3 style="font-size: 0.7rem; margin-top: 0; color: #4db6ac;">DENSIDADES DE REFERÊNCIA</h3>
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr id="header-densidades">
+                        <th>Material / Ref</th>
+                        </tr>
+                </thead>
+                <tbody id="corpo-matriz"></tbody>
+            </table>
+        </div>
+    </div>
 </main>
 
 <footer id="rodape"></footer>
 
-<!-- Caixa password -->
-<div id="passwordPrompt">
-  <label for="passwordInput">Introduza a password para ativar edição:</label>
-  <input type="password" id="passwordInput" />
-  <div id="msgErro"></div>
-  <div>
-    <button id="passwordOkBtn">OK</button>
-    <button id="passwordCancelBtn">Cancelar</button>
-  </div>
-</div>
-
-
 <script>
-function obterVolumesDaTabela() {
-  const volumes = {};
-  const rows = document.querySelectorAll("#tabelaEdicao tr");
-  rows.forEach(row => {
-    const [nomeCell, volumeCell] = row.querySelectorAll("td");
-    const nome = nomeCell.textContent.trim();
-    const volume = volumeCell.textContent.trim();
-    volumes[nome] = volume ? parseFloat(volume.replace(",", ".")) : null;
-  });
-  return volumes;
-}
-
-function preencherSelects() {
-  const volumes = obterVolumesDaTabela();
-  const select1 = document.getElementById("tipoBalde");
-  const select2 = document.getElementById("tipoBaldeDensidade");
-
-  const baldesArray = Object.entries(volumes);
-
-  const prioridadeModelos = ["M2000", "M2001", "M03", "M0301", "M0302", "M0304", "M22", "M24"];
-
-  function extrairLitros(nome) {
-    const match = nome.match(/(\d{1,2},?\d*)Lt/i);
-    return match ? parseFloat(match[1].replace(',', '.')) : -Infinity;
-  }
-
-  function extrairModelo(nome) {
-    const match = nome.match(/(M\d{2,4})/i);
-    return match ? match[1].toUpperCase() : "ZZZ";
-  }
-
-  function prioridadeModelo(modelo) {
-    const index = prioridadeModelos.indexOf(modelo);
-    return index !== -1 ? index : 999;
-  }
-
-  baldesArray.sort((a, b) => {
-    const litrosA = extrairLitros(a[0]);
-    const litrosB = extrairLitros(b[0]);
-    if (litrosA !== litrosB) return litrosA - litrosB;
-    const modeloA = extrairModelo(a[0]);
-    const modeloB = extrairModelo(b[0]);
-    return prioridadeModelo(modeloA) - prioridadeModelo(modeloB);
-  });
-
-  [select1, select2].forEach(select => {
-    select.innerHTML = `<option value="">Selecione o modelo do balde</option>`;
-    baldesArray.forEach(([key]) => {
-      const opt = document.createElement("option");
-      opt.value = key;
-      opt.textContent = key;
-      select.appendChild(opt);
-    });
-  });
-
-  atualizarEstadoInputs();
-}
-
-function atualizarEstadoInputs() {
-  const volumes = obterVolumesDaTabela();
-
-  ["tipoBalde", "tipoBaldeDensidade"].forEach(id => {
-    const select = document.getElementById(id);
-    const selected = select.value;
-    const volume = volumes[selected];
-    const inputId = id === "tipoBalde" ? "peso" : "densidade";
-    const botao = select.nextElementSibling.nextElementSibling;
-    const input = document.getElementById(inputId);
-    const resultadoId = id === "tipoBalde" ? "resultado" : "resultadoDensidade";
-    const resultadoEl = document.getElementById(resultadoId);
-
-    if (!selected || volume === null || isNaN(volume)) {
-      input.value = "";
-      input.disabled = true;
-      botao.disabled = true;
-      resultadoEl.textContent = volume === null && selected ? "Volume Indisponível" : "";
-    } else {
-      input.disabled = false;
-      botao.disabled = false;
-      resultadoEl.textContent = "";
-    }
-  });
-}
-
-function calcular() {
-  const volumes = obterVolumesDaTabela();
-  const tipo = document.getElementById("tipoBalde").value;
-  const peso = parseFloat(document.getElementById("peso").value);
-  const volume = volumes[tipo];
-  const resultado = document.getElementById("resultado");
-
-  if (!tipo || isNaN(peso) || volume === null || isNaN(volume)) {
-    resultado.textContent = "Dados inválidos ou volume indisponível.";
-    return;
-  }
-  const pesoEstimado = volume * 0.9012 * ((peso / 100) + 1);
-  resultado.textContent = `Peso estimado: ${pesoEstimado.toFixed(1)} g`;
-}
-
-function calcularDensidade() {
-  const volumes = obterVolumesDaTabela();
-  const tipo = document.getElementById("tipoBaldeDensidade").value;
-  const densidade = parseFloat(document.getElementById("densidade").value);
-  const volume = volumes[tipo];
-  const resultado = document.getElementById("resultadoDensidade");
-
-  if (!tipo || isNaN(densidade) || volume === null || isNaN(volume)) {
-    resultado.textContent = "Dados inválidos ou volume indisponível.";
-    return;
-  }
-  const pesoEstimado = volume * densidade;
-  resultado.textContent = `Peso estimado: ${pesoEstimado.toFixed(1)} g`;
-}
-
-const btnEditar = document.getElementById("btnEditar");
-const senhaCorreta = "mgreditar123";
-
-btnEditar.addEventListener("click", () => {
-  const modoNormal = document.getElementById("modoNormal");
-  const modoEdicao = document.getElementById("modoEdicao");
-
-  if (btnEditar.textContent === "Editar") {
-    // Mostrar a caixa de password
-    document.getElementById("passwordPrompt").style.display = "block";
-    document.getElementById("passwordInput").value = "";
-    document.getElementById("msgErro").textContent = "";
-  } else {
-    alert("Alterações guardadas.");
-    btnEditar.textContent = "Editar";
-    modoNormal.classList.remove("hidden");
-    modoEdicao.classList.add("hidden");
-// AQUI: remove a classe no body para liberar scroll da página
-    document.body.classList.remove("edit-mode");
-    preencherSelects();
-  }
-});
-
-// Botão OK na caixa de password
-document.getElementById("passwordOkBtn").addEventListener("click", () => {
-  const input = document.getElementById("passwordInput").value;
-  const msgErro = document.getElementById("msgErro");
-
-  if (input === senhaCorreta) {
-    document.getElementById("passwordPrompt").style.display = "none";
-    btnEditar.textContent = "Salvar";
-    document.getElementById("modoNormal").classList.add("hidden");
-    document.getElementById("modoEdicao").classList.remove("hidden");
-     // AQUI: ativa a classe no body para bloquear scroll da página
-    document.body.classList.add("edit-mode");
-  } else {
-    msgErro.textContent = "Senha incorreta.";
-  }
-});
-
-// Botão Cancelar
-document.getElementById("passwordCancelBtn").addEventListener("click", () => {
-  document.getElementById("passwordPrompt").style.display = "none";
-});
-
-document.getElementById("tipoBalde").addEventListener("change", atualizarEstadoInputs);
-document.getElementById("tipoBaldeDensidade").addEventListener("change", atualizarEstadoInputs);
-
-preencherSelects();
-
-
-// Adicionar/Remover linhas e Importar/Exportar
-document.getElementById("addLinhaBtn").addEventListener("click", () => {
-  const tabela = document.getElementById("tabelaEdicao");
-  const novaLinha = document.createElement("tr");
-  novaLinha.innerHTML = `<td contenteditable="true"></td><td contenteditable="true"></td>`;
-  tabela.appendChild(novaLinha);
-});
-
-// Exportar para .TXT
-document.getElementById("exportarBtn").addEventListener("click", () => {
-  // Obter data e hora atual no formato YYYYMMDDHHmm
-  const agora = new Date();
-  const ano = agora.getFullYear();
-  const mes = String(agora.getMonth() + 1).padStart(2, '0');
-  const dia = String(agora.getDate()).padStart(2, '0');
-  const horas = String(agora.getHours()).padStart(2, '0');
-  const minutos = String(agora.getMinutes()).padStart(2, '0');
-  const timestamp = `${ano}${mes}${dia}${horas}${minutos}`;
-
-  // Obter dados da tabela
-  const linhas = document.querySelectorAll("#tabelaEdicao tr");
-  const dados = [
-  "Modelo\tVolume", // Cabeçalhos
-  ...Array.from(linhas).map(row => {
-    const cols = row.querySelectorAll("td");
-    return `${cols[0].textContent.trim()}\t${cols[1].textContent.trim()}`;
-  })
-].join("\n");
-
-  // Criar e descarregar o ficheiro
-  const blob = new Blob([dados], { type: "text/plain" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `volumes_${timestamp}.txt`;
-  link.click();
-  URL.revokeObjectURL(link.href);
-});
-
-// Exportar para .xlsx
-document.getElementById("exportarExcelBtn").addEventListener("click", () => {
-  const agora = new Date();
-  const ano = agora.getFullYear();
-  const mes = String(agora.getMonth() + 1).padStart(2, '0');
-  const dia = String(agora.getDate()).padStart(2, '0');
-  const horas = String(agora.getHours()).padStart(2, '0');
-  const minutos = String(agora.getMinutes()).padStart(2, '0');
-  const timestamp = `${ano}${mes}${dia}${horas}${minutos}`;
-
-  const linhas = document.querySelectorAll("#tabelaEdicao tr");
-  const dados = [
-  ["Modelo", "Volume"], // Cabeçalhos
-  ...Array.from(linhas).map(row => {
-    const cols = row.querySelectorAll("td");
-    return [
-      cols[0]?.textContent.trim() || "",
-      cols[1]?.textContent.trim() || ""
-    ];
-  })
+    const colunasDensidade = [0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97];
+    const listaMateriais = [
+    { nome: "MGG C4200 90/04", ref: "MPPX0087", ok: [0.91, 0.92, 0.93] },
+    { nome: "MGG C4200 90/04", ref: "MPPD25006", ok: [0.91, 0.92, 0.93] },
+    { nome: "MGG B4200 70/31", ref: "MPPF25001", ok: [0.92, 0.93] },
+    { nome: "MGG B4200 70/35", ref: "MPPX24002", ok: [0.91, 0.92, 0.93] },
+    { nome: "MGG B4200 70/35", ref: "MPPD26001", ok: [0.91, 0.92, 0.93] },
+    { nome: "Veolia G40 Grey", ref: "MPPX0111", ok: [0.93, 0.94, 0.95, 0.96, 0.97] },
+    { nome: "Veolia G25 GREY MFI 25", ref: "MPPX24003", ok: [0.93, 0.94, 0.95, 0.96, 0.97] },
+    { nome: "BAGE R300925", ref: "MPPX23004", ok: [0.93, 0.94] },
+    { nome: "ESLAPRENE 3310300", ref: "MPPZ25002", ok: [0.91, 0.92] },
+    { nome: "ESLAPRENE 3310200", ref: "MPPZ26003", ok: [0.90, 0.91] },
+    { nome: "RDC PPOC CINZA", ref: "MPPD25001", ok: [0.91, 0.92, 0.93, 0.94] },
+    { nome: "Mafill CR 6041", ref: "MPPW0113", ok: [0.89, 0.90] },
+    { nome: "PPON NAT", ref: "MPPR26001", ok: [0.89, 0.90] }
 ];
-  const ws = XLSX.utils.aoa_to_sheet(dados);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Dados");
 
-  XLSX.writeFile(wb, `volumes_${timestamp}.xlsx`);
-});
+    const listaMoldes = [
+        { nome: "Balde 0,5Kg", vol: 20.6 }, { nome: "Balde 0,5Lt M2000", vol: 42.32 },
+        { nome: "Balde 0,75Lt M2000", vol: 47.06 }, { nome: "Balde 1Lt M2000", vol: 53.68 },
+        { nome: "Balde 2,5Lt", vol: 137.76 }, { nome: "Balde 4Lt M0301", vol: 181.2 },
+        { nome: "Balde 5Lt M0301", vol: 222.75 }, { nome: "Balde 12,5Lt M03", vol: 627.9 },
+        { nome: "Balde 12,5Lt M22", vol: 552.52 }, { nome: "Balde 15Lt M2000", vol: 608.1 },
+        { nome: "Balde 15Lt M2001", vol: 613.1 }, { nome: "Balde 15Lt M0302 Light", vol: 624.58 },
+        { nome: "Balde 15Lt M0304", vol: 697.16 }, { nome: "Balde 15Lt M22", vol: 560.4 },
+        { nome: "Balde 15Lt M24", vol: 657.4 }, { nome: "Balde 18Lt M03", vol: 734.2 },
+        { nome: "Balde 20Lt M03", vol: 797.89 }
+    ];
 
+    function init() {
+        const hRow = document.getElementById('header-densidades');
+        colunasDensidade.forEach(d => {
+            const th = document.createElement('th');
+            th.textContent = d.toFixed(2);
+            hRow.appendChild(th);
+        });
 
-// Importar
-document.getElementById("importarInput").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+        const corpo = document.getElementById('corpo-matriz');
+        listaMateriais.forEach((m, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${m.nome}<br><span style="font-size:0.55rem; opacity:0.6">${m.ref}</span></td>`;
+            colunasDensidade.forEach(d => {
+                const td = document.createElement('td');
+                if (m.ok.includes(d)) td.innerHTML = '<span class="marca-x">X</span>';
+                tr.appendChild(td);
+            });
+            corpo.appendChild(tr);
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    const linhas = reader.result.split("\n");
-    const tabela = document.getElementById("tabelaEdicao");
-    tabela.innerHTML = "";
-    linhas.forEach(linha => {
-      const [nome, volume] = linha.split("\t");
-      const novaLinha = document.createElement("tr");
-      novaLinha.innerHTML = `<td contenteditable="true">${nome || ""}</td><td contenteditable="true">${volume || ""}</td>`;
-      tabela.appendChild(novaLinha);
-    });
-    preencherSelects();
-  };
-  reader.readAsText(file);
-});
+            const optMat = document.createElement('option');
+            optMat.value = index; 
+            optMat.textContent = m.nome + " (" + m.ref + ")";
+            document.getElementById('select-material').appendChild(optMat);
+        });
 
+        const selMolde = document.getElementById('select-molde');
+        listaMoldes.forEach(mo => {
+            const opt = document.createElement('option');
+            opt.value = mo.vol; opt.textContent = mo.nome;
+            selMolde.appendChild(opt);
+        });
 
+        relogio();
+        setInterval(relogio, 1000);
+    }
 
-window.onload = () => {
-      atualizarDataHora();
-      setInterval(atualizarDataHora, 1000);
-    };
+    function verificarSelecao() {
+        const mld = document.getElementById('select-molde').value;
+        const mat = document.getElementById('select-material').value;
+        const inp = document.getElementById('input-densidade');
+        inp.disabled = (mld === "" || mat === "");
+        if (!inp.disabled) executarCalculo(); 
+    }
 
-    function atualizarDataHora() {
-  const agora = new Date();
-  const data = agora.toLocaleDateString("pt-PT");  // ou "pt"
-  const hora = agora.toLocaleTimeString("pt-PT", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  document.getElementById("rodape").textContent = `${data} ${hora}`;
-}
-  </script>
+    function executarCalculo() {
+        const vol = parseFloat(document.getElementById('select-molde').value);
+        const matIdx = document.getElementById('select-material').value;
+        const d_text = document.getElementById('input-densidade').value;
+        const resArea = document.getElementById('res-area');
+        const resSpan = document.getElementById('resultado');
+        const msgAlerta = document.getElementById('msg-alerta');
+        
+        const partes = d_text.split('.');
+        const temTresDecimais = partes.length === 2 && partes[1].length >= 3;
+
+        if (!vol || matIdx === "" || d_text === "" || !temTresDecimais) {
+            resArea.style.opacity = "0";
+            return;
+        }
+
+        const densidadeFull = parseFloat(d_text);
+        const densidadeComparar = parseFloat(densidadeFull.toFixed(2)); 
+        
+        resSpan.innerText = (vol * densidadeFull).toFixed(1);
+        resArea.style.opacity = "1";
+
+        const materialObj = listaMateriais[matIdx];
+        if (materialObj.ok.includes(densidadeComparar)) {
+            resSpan.classList.remove('resultado-erro');
+            msgAlerta.style.display = "none";
+        } else {
+            resSpan.classList.add('resultado-erro');
+            msgAlerta.style.display = "block";
+        }
+    }
+
+    function relogio() {
+        const n = new Date();
+        document.getElementById("rodape").textContent = n.toLocaleDateString("pt-PT") + " " + n.toLocaleTimeString("pt-PT", {hour:'2-digit', minute:'2-digit'});
+    }
+
+    window.onload = init;
+</script>
 </body>
 </html>
